@@ -7,9 +7,13 @@ export const signup = async (req, res) => {
   const { fullName, email, password } = req.body;
   console.log(req.body);
   try {
-    if (fullName=="" || email == "" || password=="") {
+    if (fullName == "" || email == "" || password == "") {
       return res.status(400).json({ message: "All fields are required" });
     }
+    // if (!fullName || !email || !password) {
+    //   return res.status(400).json({ message: "All fields are required" });
+    // }
+
 
     if (password.length < 6) {
       return res.status(400).json({ message: "Password must be at least 6 characters" });
@@ -32,6 +36,10 @@ export const signup = async (req, res) => {
       // generate jwt token here
       generateToken(newUser._id, res);
       await newUser.save();
+      // await newUser.save(); // ⬅️ Move this BEFORE generating token
+
+      // generateToken(newUser._id, res);
+
 
       res.status(201).json({
         _id: newUser._id,
