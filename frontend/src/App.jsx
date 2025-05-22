@@ -14,17 +14,45 @@ import { useEffect } from "react";
 import { Loader } from "lucide-react";
 import { Toaster } from "react-hot-toast";
 
+import { initSocket, getSocket } from "./lib/socket.js";
+import { useChatStore } from "./store/useChatStore.js"; // ✅ CORRECT
+
+
 const App = () => {
   const { authUser, checkAuth, isCheckingAuth, onlineUsers } = useAuthStore();
   const { theme } = useThemeStore();
-
   console.log({ onlineUsers });
 
   useEffect(() => {
     checkAuth();
   }, [checkAuth]);
 
-  console.log({ authUser });
+  useEffect(() => {
+    if (authUser?._id) {
+      initSocket(authUser._id);
+      const socket = getSocket();
+
+      if (!socket) return;
+
+      socket.on("newMessage", (newMessage) => {
+        const { selectedUser, messages, getUsers } = useChatStore.getState();
+
+        if (selectedUser && newMessage.senderId === selectedUser._id) {
+          useChatStore.setState({ messages: [...messages, newMessage] });
+        }
+
+        getUsers(); // refresh sidebar
+      });
+      socket.on("refreshUsers", () => {
+        useChatStore.getState().getUsers();  // reload sidebar list
+      });
+      return () => {
+        socket.off("newMessage");
+        socket.off("refreshUsers");
+      };
+    }
+  }, [authUser]);
+
 
   if (isCheckingAuth && !authUser)
     return (
@@ -49,4 +77,5 @@ const App = () => {
     </div>
   );
 };
+
 export default App;

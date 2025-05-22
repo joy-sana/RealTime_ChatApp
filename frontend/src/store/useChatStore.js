@@ -55,15 +55,23 @@ export const useChatStore = create((set, get) => ({
   sendMessage: async (messageData) => {
     const { selectedUser, messages } = get();
     try {
-      const res = await axiosInstance.post(`/messages/send/${selectedUser._id}`, messageData);
+      // send to server
+      const res = await axiosInstance.post(
+        `/messages/send/${selectedUser._id}`,
+        messageData
+      );
+  
+      // append locally
       set({ messages: [...messages, res.data] });
-
-      // Move recipient to top
-      get().moveUserToTop(selectedUser._id);
+  
+      // now re-fetch sidebar users so 'selectedUser' shows up permanently
+      await get().getUsers();
+  
     } catch (error) {
-      toast.error(error.response.data.message);
+      toast.error(error.response?.data?.message || "Failed to send message");
     }
   },
+  
 
 
   updateMessageStatus: async (messageId, status) => {

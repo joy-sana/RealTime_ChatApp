@@ -10,7 +10,8 @@ const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
     origin: ["http://localhost:3001"], // adjust to your frontend URL
-    methods: ["GET", "POST"]
+    methods: ["GET", "POST"],
+    credentials: true
   },
 });
 
@@ -28,6 +29,7 @@ io.on("connection", (socket) => {
 
   if (userId) {
     userSocketMap[userId] = socket.id;
+    socket.join(userId);  
     io.emit("getOnlineUsers", Object.keys(userSocketMap));
   }
 
