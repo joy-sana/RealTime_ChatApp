@@ -1,5 +1,6 @@
 import express from "express";
-import { checkAuth, login, logout, signup, updateProfile } from "../controllers/auth.controller.js";
+import { checkAuth, login, logout, signup, updateProfile, searchUsers  } from "../controllers/auth.controller.js";
+// import { getRecentChatUsers } from "../controllers/user.controller.js";
 import { protectRoute } from "../middleware/auth.middleware.js";
 
 const router = express.Router();
@@ -12,4 +13,7 @@ router.put("/update-profile", protectRoute, updateProfile);
 
 router.get("/check", protectRoute, checkAuth);
 
+router.get("/search", protectRoute, searchUsers);
+
 export default router;
+// router.get("/recent", protectRoute, getRecentChatUsers);

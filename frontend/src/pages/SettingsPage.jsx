@@ -1,6 +1,7 @@
 import { THEMES } from "../constants";
 import { useThemeStore } from "../store/useThemeStore";
 import { Send } from "lucide-react";
+import { useState } from "react";
 
 const PREVIEW_MESSAGES = [
   { id: 1, content: "Hey! How's it going?", isSent: false },
@@ -9,6 +10,8 @@ const PREVIEW_MESSAGES = [
 
 const SettingsPage = () => {
   const { theme, setTheme } = useThemeStore();
+  // const { theme, setTheme } = useThemeStore();
+  const [notificationsEnabled, setNotificationsEnabled] = useState(true); // New state
 
   return (
     <div className="h-screen container mx-auto px-4 pt-20 max-w-5xl">
@@ -43,6 +46,19 @@ const SettingsPage = () => {
           ))}
         </div>
 
+        
+        <div className="pt-2">
+          <h2 className="text-lg font-semibold mb-2">Notifications</h2>
+          <div className="flex items-center justify-between bg-base-100 p-4 rounded-lg border border-base-300 shadow-sm">
+            <span className="text-sm text-base-content">Enable Notifications</span>
+            <input
+              type="checkbox"
+              className="toggle toggle-primary"
+              checked={notificationsEnabled}
+              onChange={() => setNotificationsEnabled(!notificationsEnabled)}
+            />
+          </div>
+        </div>
         {/* Preview Section */}
         <h3 className="text-lg font-semibold mb-3">Preview</h3>
         <div className="rounded-xl border border-base-300 overflow-hidden bg-base-100 shadow-lg">

@@ -9,6 +9,12 @@ export const useChatStore = create((set, get) => ({
   selectedUser: null,
   isUsersLoading: false,
   isMessagesLoading: false,
+  
+  notificationSoundEnabled: true,
+  setNotificationSound: (enabled) => set({ notificationSoundEnabled: enabled }),
+  // toggleNotificationSound: () =>  set((state) => ({ 
+    // notificationSoundEnabled: !state.notificationSoundEnabled,
+  //   })),
 
   getUsers: async () => {
     set({ isUsersLoading: true });
@@ -26,43 +32,98 @@ export const useChatStore = create((set, get) => ({
     set({ isMessagesLoading: true });
     try {
       const res = await axiosInstance.get(`/messages/${userId}`);
-      set({ messages: res.data });
+      const fetchedMessages = res.data;
+      set({ messages: fetchedMessages });
+  
+      // ✅ Update status of received messages to "read"
+      const myId = useAuthStore.getState().authUser._id;
+  
+      fetchedMessages.forEach((msg) => {
+        if (msg.receiverId === myId && msg.status !== "read") {
+          axiosInstance.patch(`/messages/${msg._id}/status`, { status: "read" });
+        }
+      });
+  
     } catch (error) {
-      toast.error(error.response.data.message);
+      toast.error(error.response?.data?.message || "Error loading messages");
     } finally {
       set({ isMessagesLoading: false });
     }
   },
+  
+
   sendMessage: async (messageData) => {
     const { selectedUser, messages } = get();
     try {
       const res = await axiosInstance.post(`/messages/send/${selectedUser._id}`, messageData);
       set({ messages: [...messages, res.data] });
+
+      // Move recipient to top
+      get().moveUserToTop(selectedUser._id);
     } catch (error) {
       toast.error(error.response.data.message);
     }
   },
 
-  subscribeToMessages: () => {
-    const { selectedUser } = get();
-    if (!selectedUser) return;
 
-    const socket = useAuthStore.getState().socket;
-
-    socket.on("newMessage", (newMessage) => {
-      const isMessageSentFromSelectedUser = newMessage.senderId === selectedUser._id;
-      if (!isMessageSentFromSelectedUser) return;
-
-      set({
-        messages: [...get().messages, newMessage],
-      });
-    });
+  updateMessageStatus: async (messageId, status) => {
+    try {
+      await axiosInstance.patch(`/messages/${messageId}/status`, { status });
+    } catch (error) {
+      console.error("Failed to update message status:", error.response?.data?.message || error.message);
+    }
   },
+
+  
+
+subscribeToMessages: () => {
+  const socket = useAuthStore.getState().socket;
+
+  socket.on("newMessage", (newMessage) => {
+    const myId = useAuthStore.getState().authUser._id;
+    const otherUserId = newMessage.senderId === myId ? newMessage.receiverId : newMessage.senderId;
+
+    // Move sender or receiver to top
+    get().moveUserToTop(otherUserId);
+
+    const { selectedUser, messages } = get();
+    if (selectedUser && newMessage.senderId === selectedUser._id) {
+      set({
+        messages: [...messages, newMessage],
+      });
+    }
+  });
+
+  // 👇 Add this block for message status update
+  socket.on("messageStatusUpdated", ({ messageId, status }) => {
+    set((state) => ({
+      messages: state.messages.map((msg) =>
+        msg._id === messageId ? { ...msg, status } : msg
+      ),
+    }));
+  });
+},
+
+  
 
   unsubscribeFromMessages: () => {
     const socket = useAuthStore.getState().socket;
     socket.off("newMessage");
+    socket.off("messageStatusUpdated"); 
+
   },
 
   setSelectedUser: (selectedUser) => set({ selectedUser }),
+
+  moveUserToTop: (userId) => {
+    set((state) => {
+      const updatedUsers = [...state.users];
+      const index = updatedUsers.findIndex((user) => user._id === userId);
+      if (index !== -1) {
+        const [user] = updatedUsers.splice(index, 1);
+        updatedUsers.unshift(user);
+      }
+      return { users: updatedUsers };
+    });
+  },
 }));

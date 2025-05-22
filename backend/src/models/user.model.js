@@ -7,6 +7,13 @@ const userSchema = new mongoose.Schema(
       required: true,
       unique: true,
     },
+    userName: {
+      type: String,
+      required: true,
+      unique: true,
+      lowercase: true, 
+      trim: true,
+    },
     fullName: {
       type: String,
       required: true,
@@ -19,6 +26,10 @@ const userSchema = new mongoose.Schema(
     profilePic: {
       type: String,
       default: "",
+    },
+    lastSeen: {
+      type: Date,
+      default: Date.now, // Set current time by default
     },
   },
   { timestamps: true }

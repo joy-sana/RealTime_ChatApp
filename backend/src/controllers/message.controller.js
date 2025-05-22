@@ -7,14 +7,41 @@ import { getReceiverSocketId, io } from "../lib/socket.js";
 export const getUsersForSidebar = async (req, res) => {
   try {
     const loggedInUserId = req.user._id;
-    const filteredUsers = await User.find({ _id: { $ne: loggedInUserId } }).select("-password");
 
-    res.status(200).json(filteredUsers);
+    // Get all users except the current one
+    const users = await User.find({ _id: { $ne: loggedInUserId } }).select("-password");
+
+    // For each user, find the latest message with logged-in user
+    const usersWithLastMessage = await Promise.all(
+      users.map(async (user) => {
+        const lastMessage = await Message.findOne({
+          $or: [
+            { senderId: loggedInUserId, receiverId: user._id },
+            { senderId: user._id, receiverId: loggedInUserId },
+          ],
+        })
+          .sort({ createdAt: -1 })
+          .limit(1);
+
+        return {
+          ...user.toObject(),
+          lastMessageTime: lastMessage ? lastMessage.createdAt : user.createdAt,
+        };
+      })
+    );
+
+    // Sort users by lastMessageTime descending
+    usersWithLastMessage.sort((a, b) => new Date(b.lastMessageTime) - new Date(a.lastMessageTime));
+
+    res.status(200).json(usersWithLastMessage);
   } catch (error) {
-    console.error("Error in getUsersForSidebar: ", error.message);
+    console.error("Error in getUsersForSidebar:", error.message);
     res.status(500).json({ error: "Internal server error" });
   }
 };
+
+
+
 
 export const getMessages = async (req, res) => {
   try {
@@ -68,3 +95,59 @@ export const sendMessage = async (req, res) => {
     res.status(500).json({ error: "Internal server error" });
   }
 };
+
+
+
+
+// PATCH /messages/:messageId/status
+// PATCH /messages/:messageId/status
+export const updateMessageStatus = async (req, res) => {
+  try {
+    const { messageId } = req.params;
+    const { status } = req.body;
+
+    // Validate status
+    if (!["delivered", "read"].includes(status)) {
+      return res.status(400).json({ error: "Invalid status value" });
+    }
+
+    // Find message
+    const message = await Message.findById(messageId);
+    if (!message) {
+      return res.status(404).json({ error: "Message not found" });
+    }
+
+    // Status priority logic
+    const statusPriority = { sent: 1, delivered: 2, read: 3 };
+    if (statusPriority[status] <= statusPriority[message.status]) {
+      return res.status(400).json({ error: "Cannot downgrade message status" });
+    }
+
+    message.status = status;
+    await message.save();
+
+    // ✅ Emit to both sender and receiver
+    const senderSocketId = getReceiverSocketId(message.senderId.toString());
+    const receiverSocketId = getReceiverSocketId(message.receiverId.toString());
+
+    const payload = {
+      messageId: message._id,
+      status: message.status,
+    };
+
+    if (senderSocketId) {
+      io.to(senderSocketId).emit("messageStatusUpdated", payload);
+    }
+
+    if (receiverSocketId) {
+      io.to(receiverSocketId).emit("messageStatusUpdated", payload);
+    }
+
+    res.status(200).json({ message: "Status updated", updatedMessage: message });
+  } catch (error) {
+    console.error("Error updating message status:", error.message);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+

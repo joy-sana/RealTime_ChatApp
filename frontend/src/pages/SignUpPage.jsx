@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useAuthStore } from "../store/useAuthStore";
-import { Eye, EyeOff, Loader2, Lock, Mail, MessageSquare, User } from "lucide-react";
+import { Eye, EyeOff, Loader2, Lock, Mail, MessageSquare, User,UserRoundSearch } from "lucide-react";
 import { Link } from "react-router-dom";
 
 import AuthImagePattern from "../components/AuthImagePattern";
@@ -72,6 +72,24 @@ const SignUpPage = () => {
               </div>
             </div>
 
+            <div className="form-control">
+              <label className="label">
+                <span className="label-text font-medium">UserName</span>
+              </label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <UserRoundSearch  className="size-5 text-base-content/40"/>
+                </div>
+                <input
+                  type="text"
+                  className={`input input-bordered w-full pl-10`}
+                  placeholder="john01"
+                  value={formData.userName}
+                  onChange={(e) => setFormData({ ...formData, userName: e.target.value })}
+                />
+              </div>
+
+            </div>
             <div className="form-control">
               <label className="label">
                 <span className="label-text font-medium">Email</span>
