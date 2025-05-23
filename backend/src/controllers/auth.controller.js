@@ -1,5 +1,7 @@
 import { generateToken } from "../lib/utils.js";
 import User from "../models/user.model.js";
+import Message from "../models/message.model.js";
+
 import bcrypt from "bcryptjs";
 import cloudinary from "../lib/cloudinary.js";
 
@@ -71,6 +73,14 @@ export const login = async (req, res) => {
     if (!isPasswordCorrect) {
       return res.status(400).json({ message: "Invalid credentials" });
     }
+    const updated = await User.findByIdAndUpdate(
+      user._id,
+      { 
+        $inc: { loginCount: 1 }, 
+        lastLogin: new Date() 
+      },
+      { new: true }  // return the updated doc
+    );
 
     generateToken(user._id, res);
 
@@ -79,6 +89,9 @@ export const login = async (req, res) => {
       fullName: user.fullName,
       email: user.email,
       profilePic: user.profilePic,
+      lastLogin: updated.lastLogin,
+      loginCount: updated.loginCount,
+      createdAt: updated.createdAt,  
     });
   } catch (error) {
     console.log("Error in login controller", error.message);
@@ -86,8 +99,11 @@ export const login = async (req, res) => {
   }
 };
 
-export const logout = (req, res) => {
+export const logout = async (req, res) => {
   try {
+    await User.findByIdAndUpdate(req.user._id, {
+      lastLogout: new Date(),
+    });
     res.cookie("jwt", "", { maxAge: 0 });
     res.status(200).json({ message: "Logged out successfully" });
   } catch (error) {
@@ -98,17 +114,29 @@ export const logout = (req, res) => {
 
 export const updateProfile = async (req, res) => {
   try {
-    const { profilePic } = req.body;
+    const { profilePic, fullName } = req.body;
     const userId = req.user._id;
 
-    if (!profilePic) {
-      return res.status(400).json({ message: "Profile pic is required" });
+    const updateData = {};
+
+    // If a profile picture is provided, upload it to Cloudinary
+    if (profilePic) {
+      const uploadResponse = await cloudinary.uploader.upload(profilePic);
+      updateData.profilePic = uploadResponse.secure_url;
     }
 
-    const uploadResponse = await cloudinary.uploader.upload(profilePic);
+    // If a new full name is provided, update it
+    if (fullName) {
+      updateData.fullName = fullName;
+    }
+
+    if (Object.keys(updateData).length === 0) {
+      return res.status(400).json({ message: "Nothing to update" });
+    }
+
     const updatedUser = await User.findByIdAndUpdate(
       userId,
-      { profilePic: uploadResponse.secure_url },
+      updateData,
       { new: true }
     );
 
@@ -119,9 +147,26 @@ export const updateProfile = async (req, res) => {
   }
 };
 
-export const checkAuth = (req, res) => {
+
+export const checkAuth = async (req, res) => {
   try {
-    res.status(200).json(req.user);
+    // load fresh user
+    const user = await User.findById(req.user._id).select("-password");
+
+    // count messages sent
+    const messagesSent = await Message.countDocuments({ senderId: user._id });
+
+    res.status(200).json({
+      _id:        user._id,
+      fullName:   user.fullName,
+      email:      user.email,
+      profilePic: user.profilePic,
+      lastLogin:  user.lastLogin,
+      lastLogout: user.lastLogout,
+      loginCount: user.loginCount,
+      messagesSent,
+      createdAt:  user.createdAt,
+    });
   } catch (error) {
     console.log("Error in checkAuth controller", error.message);
     res.status(500).json({ message: "Internal Server Error" });
