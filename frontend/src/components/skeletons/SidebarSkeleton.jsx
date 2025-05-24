@@ -1,4 +1,4 @@
-import { Users } from "lucide-react";
+import { Menu } from "lucide-react";
 
 const SidebarSkeleton = () => {
   // Create 8 skeleton items
@@ -12,8 +12,10 @@ const SidebarSkeleton = () => {
       {/* Header */}
       <div className="border-b border-base-300 w-full p-5">
         <div className="flex items-center gap-2">
-          <Users className="w-6 h-6" />
-          <span className="font-medium hidden lg:block">Contacts</span>
+
+          <div className="skeleton h-6 hidden lg:block w-full p-1.5"></div>
+          <div className="skeleton h-6 w-6 p-1.5"></div>
+
         </div>
       </div>
 

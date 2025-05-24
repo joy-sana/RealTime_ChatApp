@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useChatStore } from "../store/useChatStore";
 import { useAuthStore } from "../store/useAuthStore";
 import SidebarSkeleton from "./skeletons/SidebarSkeleton";
-import { Users } from "lucide-react";
+import { Menu, X,Search } from "lucide-react";
 import axios from "axios";
 
 const Sidebar = () => {
@@ -14,6 +14,7 @@ const Sidebar = () => {
   const [searchResults, setSearchResults] = useState([]);
   const [isSearching, setIsSearching] = useState(false);
   const [searchError, setSearchError] = useState("");
+  const [sidebarExpanded, setSidebarExpanded] = useState(false);
 
   // 1️⃣ Fetch sidebar data on mount
   useEffect(() => {
@@ -61,20 +62,27 @@ const Sidebar = () => {
   if (isUsersLoading) return <SidebarSkeleton />;
 
   return (
-    <aside className="h-full w-20 lg:w-72 border-r border-base-300 flex flex-col">
+    <aside className={`h-full ${sidebarExpanded ? "w-72" : "w-20"} lg:w-72 border-r border-base-300 flex flex-col`}>
+
       {/* Top: Search Box */}
       <div className="p-5 border-b border-base-300">
-        <div className="flex items-center gap-2">
-          <Users className="size-6" />
-          <span className="font-medium hidden lg:block">Search</span>
+        <div className="flex items-center gap-2 ">
+          <button onClick={() => setSidebarExpanded(prev => !prev)}
+            className="text-primary  p-1.5">
+
+            {sidebarExpanded ? (
+              <X strokeWidth={2.5} className="block lg:hidden size-6 " />
+            ) : (
+              <Menu strokeWidth={3} className="block lg:hidden size-6" />)}
+          </button>
         </div>
-        <div className="mt-2 flex gap-2">
+        <div className={`${sidebarExpanded ? "lg:block" : "hidden lg:block"} mt-2 flex gap-3`}>
           <input
             type="text"
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
             placeholder="username"
-            className="input input-sm flex-1"
+            className="input input-sm input-bordered input-accent max-w-xs flex-1 mx-1 border-solid focus:outline-none"
             onKeyDown={(e) => e.key === "Enter" && handleSearch()}
           />
           <button
@@ -82,7 +90,7 @@ const Sidebar = () => {
             disabled={isSearching || !searchInput.trim()}
             className="btn btn-sm btn-primary"
           >
-            {isSearching ? "..." : "Go"}
+            {isSearching ? "..." : <Search className="size-3" strokeWidth={2.5} />}
           </button>
         </div>
         {searchError && (
@@ -106,6 +114,7 @@ const Sidebar = () => {
               isSelected={selectedUser?._id === user._id}
               online={onlineUsers.includes(user._id)}
               onClick={() => onUserClick(user)}
+              sidebarExpanded={sidebarExpanded}
             />
           ))
         )}
@@ -114,12 +123,10 @@ const Sidebar = () => {
   );
 };
 
-const UserButton = ({ user, isSelected, online, onClick }) => (
+const UserButton = ({ user, isSelected, online, onClick, sidebarExpanded }) => (
   <button
     onClick={onClick}
-    className={`w-full p-3 flex items-center gap-3 hover:bg-base-300 transition-colors ${
-      isSelected ? "bg-base-300 ring-1 ring-base-300" : ""
-    }`}
+    className={`w-full p-3 flex items-center gap-3 hover:bg-base-300 transition-colors ${isSelected ? "bg-base-300 ring-1 ring-base-300" : ""}`}
   >
     <div className="relative">
       <img
@@ -131,7 +138,7 @@ const UserButton = ({ user, isSelected, online, onClick }) => (
         <span className="absolute bottom-0 right-0 size-3 bg-green-500 rounded-full ring-2 ring-zinc-900" />
       )}
     </div>
-    <div className="hidden lg:block truncate">
+    <div className={`${sidebarExpanded ? "lg:block" : "hidden lg:block"} truncate`}>
       {user.fullName}
     </div>
   </button>
