@@ -1,14 +1,18 @@
+import EmojiPicker from 'emoji-picker-react';
 import { useRef, useState } from "react";
 import { useChatStore } from "../store/useChatStore";
-import { Image, Send, X } from "lucide-react";
+import { Smile, Image, Send, X } from "lucide-react";
 import toast from "react-hot-toast";
 
 const MessageInput = () => {
+
   const [text, setText] = useState("");
   const [imagePreview, setImagePreview] = useState(null);
   const fileInputRef = useRef(null);
   const { sendMessage } = useChatStore();
   const [loading, setLoading] = useState(false); //
+  const [showPicker, setShowPicker] = useState(false);
+
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (!file.type.startsWith("image/")) {
@@ -31,7 +35,7 @@ const MessageInput = () => {
   const handleSendMessage = async (e) => {
     e.preventDefault();
     if (!text.trim() && !imagePreview) return;
-        setLoading(true);
+    setLoading(true);
     try {
       await sendMessage({
         text: text.trim(),
@@ -44,13 +48,24 @@ const MessageInput = () => {
       if (fileInputRef.current) fileInputRef.current.value = "";
     } catch (error) {
       console.error("Failed to send message:", error);
-    } finally{
-      setLoading(false); //jj
+    } finally {
+      setLoading(false); 
     }
   };
 
   return (
-    <div className="p-4 w-full">
+    <div className="p-4 w-full relative">
+      
+    {showPicker && (
+    <div className="absolute bottom-20 left-4 z-50">
+      <EmojiPicker
+        onEmojiClick={(emojiData, event) => {
+          event.stopPropagation();
+          setText((prev) => prev + emojiData.emoji);
+        }}
+      />
+    </div>
+  )}
       {imagePreview && (
         <div className="mb-3 flex items-center gap-2">
           <div className="relative">
@@ -73,6 +88,17 @@ const MessageInput = () => {
 
       <form onSubmit={handleSendMessage} className="flex items-center gap-2">
         <div className="flex-1 flex gap-2">
+
+          <div className='flex items-center relative '>
+            <button type="button" className='items-center'
+            onClick={(e) => {
+                e.stopPropagation();
+                setShowPicker((v) => !v);
+              }}>
+              <Smile />
+            </button>
+          </div>
+
           <input
             type="text"
             className="w-full input input-bordered rounded-lg input-sm sm:input-md"
@@ -93,8 +119,7 @@ const MessageInput = () => {
             className={`flex btn btn-circle
                      ${imagePreview ? "text-emerald-500" : "text-zinc-400"}`}
             onClick={() => fileInputRef.current?.click()}
-          >
-            
+                      >
             <Image size={20} />
           </button>
         </div>

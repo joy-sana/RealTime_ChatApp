@@ -87,6 +87,7 @@ export const login = async (req, res) => {
     res.status(200).json({
       _id: user._id,
       fullName: user.fullName,
+      userName: user.userName,
       email: user.email,
       profilePic: user.profilePic,
       lastLogin: updated.lastLogin,
@@ -159,6 +160,7 @@ export const checkAuth = async (req, res) => {
     res.status(200).json({
       _id:        user._id,
       fullName:   user.fullName,
+      userName:   user.userName,
       email:      user.email,
       profilePic: user.profilePic,
       lastLogin:  user.lastLogin,
