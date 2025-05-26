@@ -110,6 +110,13 @@ subscribeToMessages: () => {
       ),
     }));
   });
+
+  socket.on("messageDeleted", ({ messageId }) => {
+    set((state) => ({
+      messages: state.messages.filter((m) => m._id !== messageId)
+    }));
+  });
+  
 },
 
   
@@ -118,6 +125,8 @@ subscribeToMessages: () => {
     const socket = useAuthStore.getState().socket;
     socket.off("newMessage");
     socket.off("messageStatusUpdated"); 
+    socket.off("messageDeleted");
+
 
   },
 

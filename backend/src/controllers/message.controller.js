@@ -102,7 +102,6 @@ export const sendMessage = async (req, res) => {
 
 
 // PATCH /messages/:messageId/status
-// PATCH /messages/:messageId/status
 export const updateMessageStatus = async (req, res) => {
   try {
     const { messageId } = req.params;
@@ -148,6 +147,37 @@ export const updateMessageStatus = async (req, res) => {
     res.status(200).json({ message: "Status updated", updatedMessage: message });
   } catch (error) {
     console.error("Error updating message status:", error.message);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+
+export const deleteMessage = async (req, res) => {
+  try {
+    const { messageId } = req.params;
+    const userId = req.user._id;
+
+    // Find the message
+    const msg = await Message.findById(messageId);
+    if (!msg) return res.status(404).json({ error: "Message not found" });
+
+    // Only sender can delete
+    if (msg.senderId.toString() !== userId.toString()) {
+      return res.status(403).json({ error: "Not authorized" });
+    }
+
+    // Delete it
+    await msg.deleteOne();
+
+    // Notify both parties
+    const roomIds = [msg.senderId.toString(), msg.receiverId.toString()];
+    roomIds.forEach((uid) => {
+      io.to(uid).emit("messageDeleted", { messageId });
+    });
+
+    res.status(200).json({ success: true });
+  } catch (err) {
+    console.error("deleteMessage error:", err);
     res.status(500).json({ error: "Internal server error" });
   }
 };

@@ -1,12 +1,12 @@
 import { useChatStore } from "../store/useChatStore";
 import { useAuthStore } from "../store/useAuthStore";
 import { useEffect, useRef } from "react";
-
+import { axiosInstance } from "../lib/axios";
 import ChatHeader from "./ChatHeader";
 import MessageInput from "./MessageInput";
 import MessageSkeleton from "./skeletons/MessageSkeleton";
 import { formatMessageTime } from "../lib/utils";
-import { Download } from "lucide-react";
+import { Download, Trash2, ChevronDown, Clipboard } from "lucide-react";
 
 const downloadImage = async (imageUrl) => {
   try {
@@ -87,6 +87,7 @@ const ChatContainer = () => {
             className={`chat ${message.senderId === authUser._id ? "chat-end" : "chat-start"}`}
             ref={messageEndRef}
           >
+            {/* Avatar */}
             <div className="chat-image avatar">
               <div className="size-10 rounded-full border">
                 <img
@@ -99,17 +100,20 @@ const ChatContainer = () => {
                 />
               </div>
             </div>
+
+            {/* Timestamp */}
             <div className="chat-header mb-1">
               <time className="text-xs opacity-50 ml-1">
                 {formatMessageTime(message.createdAt)}
               </time>
             </div>
+
+            {/* Bubble */}
             <div
-              className={`chat-bubble flex flex-col ${
-                message.senderId === authUser._id
+              className={`chat-bubble relative flex flex-col ${message.senderId === authUser._id
                   ? "bg-primary text-primary-content"
                   : "bg-base-200 text-base-content"
-              }`}
+                }`}
             >
               {message.image && (
                 <div className="relative sm:max-w-[200px] mb-2">
@@ -118,26 +122,82 @@ const ChatContainer = () => {
                     alt="Attachment"
                     className="rounded-md w-full"
                   />
-                  <button
-                    onClick={() => downloadImage(message.image)}
-                    className="absolute top-1 right-1 bg-white bg-opacity-70 hover:bg-opacity-100 p-1 rounded-md text-sm"
-                    title="Download image"
-                  >
-                    <Download />
-                  </button>
                 </div>
               )}
               {message.text && <p>{message.text}</p>}
 
+              {/* Status checks for sent messages */}
               {message.senderId === authUser._id && (
                 <span className="text-xs text-gray-500 text-right mt-1">
                   {message.status === "sent" && "✓"}
                   {message.status === "delivered" && "✓✓"}
-                  {message.status === "read" && (
-                    <span className="text-base-300">✓✓</span>
-                  )}
+                  {message.status === "read" && <span className="text-base-300">✓✓</span>}
                 </span>
               )}
+
+              <div
+                className={`absolute dropdown top-1/2 transform -translate-y-1/2 text-base-content ${message.senderId === authUser._id
+                    ? "dropdown-left -left-7"
+                    : "dropdown-right -right-7 "
+                  }`}
+              >
+                {/* trigger */}
+                <div tabIndex={0} className="btn rounded-full btn-sm btn-ghost p-1">
+                <ChevronDown size={18} />
+                
+                </div>
+
+                {/* menu */}
+                <ul
+                  tabIndex={0}
+                  className="dropdown-content menu bg-base-100 rounded-box z-[1] w-40 p-1 shadow relative"
+                >
+                  {/* Unsend only for your own messages */}
+                  {message.senderId === authUser._id && (
+                    <li>
+                      <button
+                        className="flex items-center gap-2 text-red-500 w-full px-2 py-1 hover:bg-base-200 rounded"
+                        onClick={async () => {
+                          try {
+                            await axiosInstance.delete(`/messages/${message._id}`);
+                          } catch (err) {
+                            console.error("Unsend failed", err);
+                          }
+                        }}
+                      >
+                        <Trash2 className="w-4 h-4" />
+                        Unsend
+                      </button>
+                    </li>
+                  )}
+
+                  {/* Copy Text (if text exists) */}
+                  {message.text && (
+                    <li>
+                      <button
+                        className="flex items-center gap-2 w-full px-2 py-1 hover:bg-base-200 rounded"
+                        onClick={() => navigator.clipboard.writeText(message.text)}
+                      >
+                        <Clipboard className="w-4 h-4" />
+                        Copy Text
+                      </button>
+                    </li>
+                  )}
+
+                  {/* Download Image (if image exists) */}
+                  {message.image && (
+                    <li>
+                      <button
+                        className="flex items-center gap-2 w-full px-2 py-1 hover:bg-base-200 rounded"
+                        onClick={() => downloadImage(message.image)}
+                      >
+                        <Download className="w-4 h-4" />
+                        Download Image
+                      </button>
+                    </li>
+                  )}
+                </ul>
+              </div>
             </div>
           </div>
         ))}
@@ -146,6 +206,9 @@ const ChatContainer = () => {
       <MessageInput />
     </div>
   );
+
+
+
 };
 
 export default ChatContainer;
