@@ -62,13 +62,13 @@ const Sidebar = () => {
   if (isUsersLoading) return <SidebarSkeleton />;
 
   return (
-    <aside className={`h-full  p-3 ${sidebarExpanded ? "w-72" : "w-20"} lg:w-72 border-r-2 border-base-300 flex flex-col`}>
+    <aside className={`h-full p-2 ${sidebarExpanded ? "w-72" : "w-20"} lg:w-72 border-r-2 border-base-300 flex flex-col`}>
 
       {/* Top: Search Box */}
-      <div className="p-5 border-b border-base-300">
-        <div className="flex items-center gap-2 ">
+      <div className="flex p-2  border-b border-base-300">
+        <div className="m-1  flex items-center gap-2 ">
           <button onClick={() => setSidebarExpanded(prev => !prev)}
-            className="text-primary  p-1.5">
+            className="text-primary  p-1">
 
             {sidebarExpanded ? (
               <X strokeWidth={2.5} className="block lg:hidden size-6 " />
@@ -76,7 +76,7 @@ const Sidebar = () => {
               <Menu strokeWidth={3} className="block lg:hidden size-6" />)}
           </button>
         </div>
-        <div className={`${sidebarExpanded ? "lg:block" : "hidden lg:block"} mt-2 flex gap-3`}>
+        <div className={` ${sidebarExpanded ? "lg:block" : "hidden lg:block"} m-1 flex gap-3`}>
           <input
             type="text"
             value={searchInput}
@@ -94,7 +94,7 @@ const Sidebar = () => {
           </button>
         </div>
         {searchError && (
-          <div className="text-red-500 text-xs mt-1">{searchError}</div>
+          <div className="text-red-500 text-xs m-1">{searchError}</div>
         )}
       </div>
 
@@ -126,7 +126,7 @@ const Sidebar = () => {
 const UserButton = ({ user, isSelected, online, onClick, sidebarExpanded }) => (
   <button
     onClick={onClick}
-    className={` w-full p-3 flex rounded-lg items-center gap-3 my-1.5 hover:bg-base-300 transition-colors ${isSelected ? "bg-base-200" : ""}`}
+    className={` w-full p-1 py-3 flex rounded-lg items-center gap-3 my-2 hover:bg-base-300 transition-colors ${isSelected ? "bg-base-200" : ""}`}
   >
     <div className="relative ">
       <img

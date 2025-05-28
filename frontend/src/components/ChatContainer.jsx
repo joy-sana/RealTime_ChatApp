@@ -88,8 +88,8 @@ const ChatContainer = () => {
   return (
     <div className="flex-1 flex flex-col overflow-auto relative">
       <ChatHeader />
-
-      <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-base">
+      {/* <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-base bg-[url(../public/ChatAppBG.png)]"> */}
+      <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-base-100">
         {messages
           .filter((m) => !hiddenMessages.has(m._id))
           .map((message) => (
