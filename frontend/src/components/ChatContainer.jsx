@@ -6,7 +6,7 @@ import ChatHeader from "./ChatHeader";
 import MessageInput from "./MessageInput";
 import MessageSkeleton from "./skeletons/MessageSkeleton";
 import { formatMessageTime } from "../lib/utils";
-import { Download, Trash2,Trash, ChevronDown, Clipboard } from "lucide-react";
+import { Download, Trash2, Trash, ChevronDown, Copy } from "lucide-react";
 
 
 const downloadImage = async (imageUrl) => {
@@ -14,7 +14,7 @@ const downloadImage = async (imageUrl) => {
     const response = await fetch(imageUrl);
     const blob = await response.blob();
     const url = window.URL.createObjectURL(blob);
-    
+
     const a = document.createElement("a");
     a.href = url;
     a.download = `chat-image-${Date.now()}.jpg`;
@@ -39,23 +39,23 @@ const ChatContainer = () => {
     unsubscribeFromMessages,
     notificationSoundEnabled, // ✅ added from store
   } = useChatStore();
-  
+
   const { authUser } = useAuthStore();
   const messageEndRef = useRef(null);
   const notificationAudio = useRef(new Audio("sound/notification.mp3")); // ✅ audio ref
-  
-  
-  
-  
+
+
+
+
   // Initial message fetch + subscriptions
   useEffect(() => {
     getMessages(selectedUser._id);
     subscribeToMessages();
-    
+
     return () => unsubscribeFromMessages();
   }, [selectedUser._id, getMessages, subscribeToMessages, unsubscribeFromMessages]);
-  
-  
+
+
 
 
 
@@ -63,18 +63,18 @@ const ChatContainer = () => {
   useEffect(() => {
     if (messageEndRef.current && messages?.length) {
       messageEndRef.current.scrollIntoView({ behavior: "smooth" });
-      
+
       const latestMsg = messages[messages.length - 1];
       const isIncoming = latestMsg?.senderId !== authUser._id;
-      
+
       if (isIncoming && notificationSoundEnabled) {
         notificationAudio.current.play().catch((e) =>
-        console.log("Sound play blocked:", e)
+          console.log("Sound play blocked:", e)
         );
       }
     }
   }, [messages]);
-  
+
   if (isMessagesLoading) {
     return (
       <div className="flex-1 flex flex-col overflow-auto">
@@ -84,87 +84,113 @@ const ChatContainer = () => {
       </div>
     );
   }
-  
+
   return (
     <div className="flex-1 flex flex-col overflow-auto relative">
       <ChatHeader />
 
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+      <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-base">
         {messages
-        .filter((m) => !hiddenMessages.has(m._id))
-        .map((message) => (
-          <div
-            key={message._id}
-            className={`chat ${message.senderId === authUser._id ? "chat-end" : "chat-start"}`}
-            ref={messageEndRef}
-          >
-            {/* Avatar */}
-            <div className="chat-image avatar">
-              <div className="size-10 rounded-full border">
-                <img
-                  src={
-                    message.senderId === authUser._id
-                      ? authUser.profilePic || "/avatar.png"
-                      : selectedUser.profilePic || "/avatar.png"
-                  }
-                  alt="profile pic"
-                />
-              </div>
-            </div>
-
-            {/* Timestamp */}
-            <div className="chat-header mb-1">
-              <time className="text-xs opacity-50 ml-1">
-                {formatMessageTime(message.createdAt)}
-              </time>
-            </div>
-
-            {/* Bubble */}
+          .filter((m) => !hiddenMessages.has(m._id))
+          .map((message) => (
             <div
-              className={`chat-bubble relative flex flex-col ${message.senderId === authUser._id
-                ? "bg-primary text-primary-content"
-                : "bg-base-200 text-base-content"
-                }`}
+              key={message._id}
+              className={`chat ${message.senderId === authUser._id ? "chat-end" : "chat-start"}`}
+              ref={messageEndRef}
             >
-              {message.image && (
-                <div className="relative sm:max-w-[200px] mb-2">
+              {/* Avatar */}
+              <div className="chat-image avatar">
+                <div className="size-10 rounded-full border">
                   <img
-                    src={message.image}
-                    alt="Attachment"
-                    className="rounded-md w-full"
+                    src={
+                      message.senderId === authUser._id
+                        ? authUser.profilePic || "/avatar.png"
+                        : selectedUser.profilePic || "/avatar.png"
+                    }
+                    alt="profile pic"
                   />
                 </div>
-              )}
-              {message.text && <p>{message.text}</p>}
+              </div>
 
-              {/* Status checks for sent messages */}
-              {message.senderId === authUser._id && (
-                <span className="text-xs text-gray-500 text-right mt-1">
-                  {message.status === "sent" && "✓"}
-                  {message.status === "delivered" && "✓✓"}
-                  {message.status === "read" && <span className="text-base-300">✓✓</span>}
-                </span>
-              )}
+              {/* Timestamp */}
+              <div className="chat-header mb-1">
+                <time className="text-xs opacity-50 ml-1">
+                  {formatMessageTime(message.createdAt)}
+                </time>
+              </div>
 
+              {/* Bubble */}
               <div
-                className={`absolute dropdown top-1/2 transform -translate-y-1/2 text-base-content ${message.senderId === authUser._id
-                  ? "dropdown-left -left-7"
-                  : "dropdown-right -right-7 "
+                className={`chat-bubble relative flex flex-col ${message.senderId === authUser._id
+                  ? "bg-primary text-primary-content"
+                  : "bg-base-200 text-base-content"
                   }`}
               >
-                {/* trigger */}
-                <div tabIndex={0} className="btn rounded-full btn-sm btn-ghost p-1">
-                  <ChevronDown size={18} />
+                {message.image && (
+                  <div className="relative sm:max-w-[200px] mb-2">
+                    <img
+                      src={message.image}
+                      alt="Attachment"
+                      className="rounded-md w-full"
+                    />
+                  </div>
+                )}
+                {message.text && <p>{message.text}</p>}
 
-                </div>
+                {/* Status checks for sent messages */}
+                {message.senderId === authUser._id && (
+                  <span className="text-xs text-gray-500 text-right mt-1">
+                    {message.status === "sent" && "✓"}
+                    {message.status === "delivered" && "✓✓"}
+                    {message.status === "read" && <span className="text-base-300">✓✓</span>}
+                  </span>
+                )}
 
-                {/* menu */}
-                <ul
-                  tabIndex={0}
-                  className="dropdown-content menu bg-base-100 rounded-box z-[1] w-40 p-1 shadow relative"
+                <div
+                  className={`absolute dropdown top-1/2 transform -translate-y-1/2 text-base-content ${message.senderId === authUser._id
+                    ? "dropdown-left -left-7"
+                    : "dropdown-right -right-7 "
+                    }`}
                 >
-                  {/* Inside your dropdown <ul> */}
-                  
+                  {/* trigger */}
+                  <div tabIndex={0} className="btn rounded-full btn-sm btn-ghost p-1">
+                    <ChevronDown size={18} />
+
+                  </div>
+
+                  {/* menu */}
+                  <ul
+                    tabIndex={0}
+                    className="dropdown-content menu bg-base-100 rounded-box z-[1] w-40 p-1 shadow relative"
+                  >
+
+                    {/* Download Image (if image exists) */}
+                    {message.image && (
+                      <li>
+                        <button
+                          className="flex items-center gap-2 w-full px-2 py-1 hover:bg-base-200 rounded"
+                          onClick={() => downloadImage(message.image)}
+                        >
+                          <Download className="w-4 h-4" />
+                          Download Image
+                        </button>
+                      </li>
+                    )}
+                    {/* Inside your dropdown <ul> */}
+                    {/* Copy Text (if text exists) */}
+                    {message.text && (
+                      <li>
+                        <button
+                          className="flex items-center gap-2 w-full px-2 py-1 hover:bg-base-200 rounded"
+                          onClick={() => navigator.clipboard.writeText(message.text)}
+                        >
+                          <Copy className="w-4 h-4" />
+                          Copy Text
+                        </button>
+                      </li>
+                    )}
+
+
                     <li>
                       <button
                         className="flex items-center gap-2 w-full px-2 py-1 hover:bg-base-200 rounded"
@@ -173,60 +199,34 @@ const ChatContainer = () => {
                         }}
                       >
                         <Trash2 className="w-4 h-4" />
-                        Delete For Me
+                        Delete For You
                       </button>
                     </li>
-                  
 
-                  {/* Unsend only for your own messages */}
-                  {message.senderId === authUser._id && (
-                    <li>
-                      <button
-                        className="flex items-center gap-2 text-red-500 w-full px-2 py-1 hover:bg-base-200 rounded"
-                        onClick={async () => {
-                          try {
-                            await axiosInstance.delete(`/messages/${message._id}`);
-                          } catch (err) {
-                            console.error("Unsend failed", err);
-                          }
-                        }}
-                      >
-                        <Trash2 className="w-4 h-4" />
-                        Unsend
-                      </button>
-                    </li>
-                  )}
+                    {/* Unsend only for your own messages */}
+                    {message.senderId === authUser._id && (
+                      <li>
+                        <button
+                          className="flex items-center gap-2 text-red-500 w-full px-2 py-1 hover:bg-base-200 rounded"
+                          onClick={async () => {
+                            try {
+                              await axiosInstance.delete(`/messages/${message._id}`);
+                            } catch (err) {
+                              console.error("Delete failed", err);
+                            }
+                          }}
+                        >
+                          <Trash2 className="w-4 h-4" />
+                          Delete For Both
+                        </button>
+                      </li>
+                    )}
 
-                  {/* Copy Text (if text exists) */}
-                  {message.text && (
-                    <li>
-                      <button
-                        className="flex items-center gap-2 w-full px-2 py-1 hover:bg-base-200 rounded"
-                        onClick={() => navigator.clipboard.writeText(message.text)}
-                      >
-                        <Clipboard className="w-4 h-4" />
-                        Copy Text
-                      </button>
-                    </li>
-                  )}
-
-                  {/* Download Image (if image exists) */}
-                  {message.image && (
-                    <li>
-                      <button
-                        className="flex items-center gap-2 w-full px-2 py-1 hover:bg-base-200 rounded"
-                        onClick={() => downloadImage(message.image)}
-                      >
-                        <Download className="w-4 h-4" />
-                        Download Image
-                      </button>
-                    </li>
-                  )}
-                </ul>
+                  </ul>
+                </div>
               </div>
             </div>
-          </div>
-        ))}
+          ))}
       </div>
 
       <MessageInput />

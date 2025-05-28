@@ -62,7 +62,7 @@ const Sidebar = () => {
   if (isUsersLoading) return <SidebarSkeleton />;
 
   return (
-    <aside className={`h-full ${sidebarExpanded ? "w-72" : "w-20"} lg:w-72 border-r border-base-300 flex flex-col`}>
+    <aside className={`h-full  p-3 ${sidebarExpanded ? "w-72" : "w-20"} lg:w-72 border-r-2 border-base-300 flex flex-col`}>
 
       {/* Top: Search Box */}
       <div className="p-5 border-b border-base-300">
@@ -82,15 +82,15 @@ const Sidebar = () => {
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
             placeholder="username"
-            className="input input-sm input-bordered input-accent max-w-xs flex-1 mx-1 border-solid focus:outline-none"
+            className="input input-sm w-9/12 input-bordered input-accent max-w-xs flex-1 mx-1 border-solid focus:outline-none"
             onKeyDown={(e) => e.key === "Enter" && handleSearch()}
           />
           <button
             onClick={handleSearch}
             disabled={isSearching || !searchInput.trim()}
-            className="btn btn-sm btn-primary"
+            className="btn btn-sm btn-accent"
           >
-            {isSearching ? "..." : <Search className="size-3" strokeWidth={2.5} />}
+            {isSearching ? "..." : <Search className={`size-3 ${isSearching || !searchInput.trim() ? "text-accent" : "text-secondory"}`} strokeWidth={3} />}
           </button>
         </div>
         {searchError && (
@@ -99,7 +99,7 @@ const Sidebar = () => {
       </div>
 
       {/* List */}
-      <div className="overflow-y-auto flex-1">
+      <div className="overflow-y-auto flex-1 ">
         {displayList.length === 0 ? (
           <div className="text-center text-zinc-500 py-4">
             {searchResults.length
@@ -126,9 +126,9 @@ const Sidebar = () => {
 const UserButton = ({ user, isSelected, online, onClick, sidebarExpanded }) => (
   <button
     onClick={onClick}
-    className={`w-full p-3 flex items-center gap-3 hover:bg-base-300 transition-colors ${isSelected ? "bg-base-300 ring-1 ring-base-300" : ""}`}
+    className={` w-full p-3 flex rounded-lg items-center gap-3 my-1.5 hover:bg-base-300 transition-colors ${isSelected ? "bg-base-200" : ""}`}
   >
-    <div className="relative">
+    <div className="relative ">
       <img
         src={user.profilePic || "/avatar.png"}
         alt={user.fullName}
@@ -138,7 +138,7 @@ const UserButton = ({ user, isSelected, online, onClick, sidebarExpanded }) => (
         <span className="absolute bottom-0 right-0 size-3 bg-green-500 rounded-full ring-2 ring-zinc-900" />
       )}
     </div>
-    <div className={`${sidebarExpanded ? "lg:block" : "hidden lg:block"} truncate`}>
+    <div className={ ` ${sidebarExpanded ? "lg:block" : "hidden lg:block"} truncate`}>
       {user.fullName}
     </div>
   </button>

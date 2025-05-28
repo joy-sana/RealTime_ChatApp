@@ -49,23 +49,23 @@ const MessageInput = () => {
     } catch (error) {
       console.error("Failed to send message:", error);
     } finally {
-      setLoading(false); 
+      setLoading(false);
     }
   };
 
   return (
     <div className="p-4 w-full relative">
-      
-    {showPicker && (
-    <div className="absolute bottom-20 left-4 z-50">
-      <EmojiPicker
-        onEmojiClick={(emojiData, event) => {
-          event.stopPropagation();
-          setText((prev) => prev + emojiData.emoji);
-        }}
-      />
-    </div>
-  )}
+
+      {showPicker && (
+        <div className="absolute bottom-20 left-4 z-50">
+          <EmojiPicker
+            onEmojiClick={(emojiData, event) => {
+              event.stopPropagation();
+              setText((prev) => prev + emojiData.emoji);
+            }}
+          />
+        </div>
+      )}
       {imagePreview && (
         <div className="mb-3 flex items-center gap-2">
           <div className="relative">
@@ -86,22 +86,22 @@ const MessageInput = () => {
         </div>
       )}
 
-      <form onSubmit={handleSendMessage} className="flex items-center gap-2">
+      <form onSubmit={handleSendMessage} className="flex items-center gap-2 ">
         <div className="flex-1 flex gap-2">
 
           <div className='flex items-center relative '>
             <button type="button" className='items-center'
-            onClick={(e) => {
+              onClick={(e) => {
                 e.stopPropagation();
                 setShowPicker((v) => !v);
               }}>
-              <Smile />
+              <Smile className='text-accent' />
             </button>
           </div>
 
           <input
             type="text"
-            className="w-full input input-bordered rounded-lg input-sm sm:input-md"
+            className="w-full input input-bordered rounded-lg input-sm sm:input-md "
             placeholder="Type a message..."
             value={text}
             onChange={(e) => setText(e.target.value)}
@@ -109,26 +109,29 @@ const MessageInput = () => {
           <input
             type="file"
             accept="image/*"
-            className="hidden"
+            className="hidden "
             ref={fileInputRef}
             onChange={handleImageChange}
           />
 
           <button
             type="button"
-            className={`flex btn btn-circle
+            className={`flex btn btn-circle text-accent
                      ${imagePreview ? "text-emerald-500" : "text-zinc-400"}`}
             onClick={() => fileInputRef.current?.click()}
-                      >
+          >
             <Image size={20} />
           </button>
         </div>
         <button
           type="submit"
-          className="btn  btn-circle bg-primary hover:bg-primary/90 text-base-100 "
+          className="btn  btn-circle  bg-accent  hover:bg-primary/90 text-base-100 "
           disabled={!text.trim() && !imagePreview || loading}
+
         >
-          <Send size={22} />
+          <Send size={22} className={` ${!text.trim() && !imagePreview || loading
+            ? "text-accent" : "text-base-100"}
+          `} />
         </button>
       </form>
     </div>
