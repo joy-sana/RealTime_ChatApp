@@ -42,7 +42,7 @@ const ChatContainer = () => {
 
   const { authUser } = useAuthStore();
   const messageEndRef = useRef(null);
-  const notificationAudio = useRef(new Audio("sound/notification.mp3")); // ✅ audio ref
+  const notificationAudio = useRef(new Audio("sound/notification1.mp3")); // ✅ audio ref
 
 
 

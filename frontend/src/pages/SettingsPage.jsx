@@ -1,7 +1,7 @@
 import { THEMES } from "../constants";
 import { useThemeStore } from "../store/useThemeStore";
 import { Send } from "lucide-react";
-import { useState } from "react";
+import { useChatStore } from "../store/useChatStore";
 
 const PREVIEW_MESSAGES = [
   { id: 1, content: "Hey! How's it going?", isSent: false },
@@ -10,8 +10,10 @@ const PREVIEW_MESSAGES = [
 
 const SettingsPage = () => {
   const { theme, setTheme } = useThemeStore();
-  // const { theme, setTheme } = useThemeStore();
-  const [notificationsEnabled, setNotificationsEnabled] = useState(true); // New state
+  const {
+        notificationSoundEnabled,
+        setNotificationSound
+      } = useChatStore(); // New state
 
   return (
     <div className="h-screen container mx-auto px-4 pt-20 max-w-5xl">
@@ -54,8 +56,8 @@ const SettingsPage = () => {
             <input
               type="checkbox"
               className="toggle toggle-primary"
-              checked={notificationsEnabled}
-              onChange={() => setNotificationsEnabled(!notificationsEnabled)}
+              checked={notificationSoundEnabled}
+              onChange={() => setNotificationSound(!notificationSoundEnabled)}
             />
           </div>
         </div>

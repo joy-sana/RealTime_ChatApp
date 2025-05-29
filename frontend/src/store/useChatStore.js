@@ -10,11 +10,17 @@ export const useChatStore = create((set, get) => ({
   isUsersLoading: false,
   isMessagesLoading: false,
   
-  notificationSoundEnabled: true,
-  setNotificationSound: (enabled) => set({ notificationSoundEnabled: enabled }),
-  // toggleNotificationSound: () =>  set((state) => ({ 
-    // notificationSoundEnabled: !state.notificationSoundEnabled,
-  //   })),
+  // ── read from localStorage or default to true ──
+  notificationSoundEnabled: (() => {
+    const saved = localStorage.getItem("notificationSound");
+    return saved === null ? true : JSON.parse(saved);
+  })(),
+
+  // ── set to localStorage ──
+  setNotificationSound: (enabled) => {
+    localStorage.setItem("notificationSound", JSON.stringify(enabled));
+    set({ notificationSoundEnabled: enabled });
+  },
 
   getUsers: async () => {
     set({ isUsersLoading: true });
