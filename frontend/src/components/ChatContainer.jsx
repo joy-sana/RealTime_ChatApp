@@ -37,7 +37,7 @@ const ChatContainer = () => {
     selectedUser,
     subscribeToMessages,
     unsubscribeFromMessages,
-    notificationSoundEnabled, // ✅ added from store
+    notificationSoundEnabled,
   } = useChatStore();
 
   const { authUser } = useAuthStore();
